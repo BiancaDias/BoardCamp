@@ -14,5 +14,7 @@ export async function postGames(req, res){
 
     try{
         const insertgame = await db.query("")
+    }catch (err) {
+        res.status(500).send(err.message)
     }
 }
