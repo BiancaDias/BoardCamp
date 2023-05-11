@@ -15,7 +15,6 @@ export async function postGames(req, res){
     try{
         const verGame = await db.query(`SELECT * FROM games WHERE name = '${name}';`)
         if(verGame.rowCount > 0){
-            console.log(verGame)
             return res.sendStatus(409);
         }
         await db.query("INSERT INTO games (name, image, \"stockTotal\", \"pricePerDay\") VALUES ($1, $2, $3, $4);", [name, image, stockTotal, pricePerDay]);
