@@ -24,3 +24,18 @@ export async function getCustomers(req, res){
         res.status(500).send(err.message)
     }
 }
+
+export async function getCustomersId(req, res){
+    const { id } = req.params;
+
+    try{
+        const customers = await db.query(`SELECT * FROM customers WHERE id=$1;`, [id]);
+
+        if(customers.rowCount === 0){
+            return res.sendStatus(404);
+        }
+        res.send(customers.rows[0]);
+    }catch (err) {
+        res.status(500).send(err.message)
+    }
+}
