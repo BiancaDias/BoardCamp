@@ -15,3 +15,12 @@ export async function postCustomers(req, res){
         res.status(500).send(err.message)
     }
 }
+
+export async function getCustomers(req, res){
+    try{
+        const customers = await db.query(`SELECT * FROM customers;`)
+        return res.send(customers.rows);
+    }catch (err) {
+        res.status(500).send(err.message)
+    }
+}
