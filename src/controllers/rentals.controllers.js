@@ -100,7 +100,7 @@ export async function getRentals(req, res){
             returnDate: r.returnDate ? dayjs(r.returnDate).format('YYYY-MM-DD') : null,
             originalPrice: r.originalPrice,
             delayFee: r.delayFee,
-            customers:{
+            customer:{
                 id: r.customer_id,
                 name: r.customer_name
             },

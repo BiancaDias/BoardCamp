@@ -12,16 +12,16 @@ export async function postCustomers(req, res){
         await db.query('INSERT INTO customers (name, phone, cpf, birthday) VALUES ($1, $2, $3, $4);', [ name, phone, cpf, birthday]);
         res.sendStatus(201)
     }catch (err) {
-        res.status(500).send(err.message)
+        res.status(500).send(err.message);
     }
 }
 
 export async function getCustomers(req, res){
     try{
-        const customers = await db.query(`SELECT * FROM customers;`)
+        const customers = await db.query(`SELECT * FROM customers;`);
         return res.send(customers.rows);
     }catch (err) {
-        res.status(500).send(err.message)
+        res.status(500).send(err.message);
     }
 }
 
@@ -36,7 +36,7 @@ export async function getCustomersId(req, res){
         }
         res.send(customers.rows[0]);
     }catch (err) {
-        res.status(500).send(err.message)
+        res.status(500).send(err.message);
     }
 }
 
@@ -54,6 +54,6 @@ export async function putCustomersForId(req, res){
         await db.query(`UPDATE customers SET name= $1, phone = $2, cpf = $3, birthday = $4 WHERE id = $5;`, [name, phone, cpf, birthday, id]);
         res.sendStatus(200);
     }catch (err) {
-        res.status(500).send(err.message)
+        res.status(500).send(err.message);
     }
 }
