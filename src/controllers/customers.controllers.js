@@ -39,3 +39,21 @@ export async function getCustomersId(req, res){
         res.status(500).send(err.message)
     }
 }
+
+export async function putCustomersForId(req, res){
+    const { id } = req.params;
+    const { name, phone, cpf, birthday } = req.body;
+    try{
+        const verCostumer = await db.query('SELECT * FROM customers WHERE cpf = $1;', [cpf]);
+        if(verCostumer.rowCount === 1){ // verifica quem é essa pessoa com esse cpf
+            if(verCostumer.rows[0].id !== Number(id)){ // se são ids diferentes, são pessoas diferentes, nao pode
+                return res.sendStatus(409);
+            }
+            
+        }
+        await db.query(`UPDATE customers SET name= $1, phone = $2, cpf = $3, birthday = $4 WHERE id = $5;`, [name, phone, cpf, birthday, id]);
+        res.sendStatus(200);
+    }catch (err) {
+        res.status(500).send(err.message)
+    }
+}
