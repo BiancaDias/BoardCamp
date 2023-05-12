@@ -7,11 +7,11 @@ export async function postRentals(req, res){
     try{
         const game = await db.query(`SELECT * FROM games WHERE id = $1;`, [gameId]);
         if(game.rowCount === 0){
-            return res.sendStatus(400)
+            return res.sendStatus(400);
         }
         const customer = await db.query(`SELECT * FROM customers WHERE id = $1;`, [customerId]);
         if(customer.rowCount === 0){
-            return res.sendStatus(400)
+            return res.sendStatus(400);
         }
 
         const gameRented = await db.query(`SELECT * FROM rentals WHERE "gameId" = $1`, [gameId]);
@@ -31,10 +31,10 @@ export async function postRentals(req, res){
             )
             VALUES ($1, $2, $3, $4, $5, $6, $7);`,
             [customerId, gameId, rentDate, daysRented, null, originalPrice, null]
-        )
-        res.sendStatus(201)
+        );
+        res.sendStatus(201);
     }catch (err) {
-        res.status(500).send(err.message)
+        res.status(500).send(err.message);
     }
 }
 
@@ -43,41 +43,74 @@ export async function postRentalsReturn(req, res){
     const returnDate = dayjs().format('YYYY-MM-DD');
     const returnDateForCalc = dayjs().startOf('day');
     try{
-        const rental = await db.query(`SELECT * FROM rentals WHERE id = $1;`, [id])
+        const rental = await db.query(`SELECT * FROM rentals WHERE id = $1;`, [id]);
         if(rental.rowCount === 0){
             return res.sendStatus(404);
         }
         if(rental.rows[0].delayFee !== null){
-            return res.sendStatus(400)
+            return res.sendStatus(400);
         }
         const days = Math.floor((returnDateForCalc.valueOf() - rental.rows[0].rentDate.valueOf())/86400000);
         let delayFee;
         if(days > rental.rows[0].daysRented){
-            delayFee = (days - rental.rows[0].daysRented) * (rental.rows[0].originalPrice / rental.rows[0].daysRented)
+            delayFee = (days - rental.rows[0].daysRented) * (rental.rows[0].originalPrice / rental.rows[0].daysRented);
         }else{
             delayFee = 0;
         }
 
-        await db.query(`UPDATE rentals SET "delayFee" = $1, "returnDate" = $2 WHERE id = $3;`,[delayFee, returnDate, id])
-        res.sendStatus(200)
+        await db.query(`UPDATE rentals SET "delayFee" = $1, "returnDate" = $2 WHERE id = $3;`,[delayFee, returnDate, id]);
+        res.sendStatus(200);
     }catch (err) {
-        res.status(500).send(err.message)
+        res.status(500).send(err.message);
     }
 }
 
 export async function deleteRentals(req, res){
     const { id } = req.params;
     try{
-        const rental = await db.query(`SELECT * FROM rentals WHERE id = $1;`, [id])
+        const rental = await db.query(`SELECT * FROM rentals WHERE id = $1;`, [id]);
         if(rental.rowCount === 0){
             return res.sendStatus(404);
         }
         if(rental.rows[0].delayFee === null){
-            return res.sendStatus(400)
+            return res.sendStatus(400);
         }
         await db.query(`DELETE FROM rentals WHERE id = $1`, [id]);
-        res.sendStatus(200)
+        res.sendStatus(200);
     }catch (err) {
-        res.status(500).send(err.message)
+        res.status(500).send(err.message);
+    }
+}
+
+export async function getRentals(req, res){
+    try{
+        const rentals = await db.query(`
+            SELECT rentals.*, games.id AS game_id, games.name AS game_name, customers.id AS customer_id, customers.name AS customer_name
+                FROM rentals 
+                JOIN games ON rentals."gameId" = games.id
+                JOIN customers ON rentals."customerId" = customers.id;
+        `)
+
+        const formatRentals = rentals.rows.map((r) =>({
+            id: r.id,
+            customerId: r.customerId,
+            gameId: r.gameId,
+            rentDate: dayjs(r.rentDate).format('YYYY-MM-DD'),
+            daysRented: r.daysRented,
+            returnDate: r.returnDate ? dayjs(r.returnDate).format('YYYY-MM-DD') : null,
+            originalPrice: r.originalPrice,
+            delayFee: r.delayFee,
+            customers:{
+                id: r.customer_id,
+                name: r.customer_name
+            },
+            game:{
+                id: r.game_id,
+                name: r.game_name
+            }
+        }));
+        res.send(formatRentals);
+    }catch (err) {
+        res.status(500).send(err.message);
     }
 }
