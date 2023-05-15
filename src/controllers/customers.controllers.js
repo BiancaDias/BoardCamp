@@ -1,7 +1,9 @@
+import dayjs from "dayjs";
 import { db } from "../database/database.connection.js";
 
 export async function postCustomers(req, res){
     const { name, phone, cpf, birthday } = req.body;
+    console.log(birthday)
 
     try{
         const verCostumer = await db.query('SELECT * FROM customers WHERE cpf = $1;', [cpf]);
@@ -19,7 +21,15 @@ export async function postCustomers(req, res){
 export async function getCustomers(req, res){
     try{
         const customers = await db.query(`SELECT * FROM customers;`);
-        return res.send(customers.rows);
+        const customersFormat = customers.rows.map((cust) => ({
+            id: cust.id,
+            name: cust.name,
+            phone: cust.phone,
+            cpf: cust.cpf,
+            birthday: dayjs(cust.birthday).format('YYYY-MM-DD')
+    }));
+
+        res.send(customersFormat);
     }catch (err) {
         res.status(500).send(err.message);
     }
@@ -34,7 +44,16 @@ export async function getCustomersId(req, res){
         if(customers.rowCount === 0){
             return res.sendStatus(404);
         }
-        res.send(customers.rows[0]);
+
+        const customersFormat = {
+            id: customers.rows[0].id,
+            name: customers.rows[0].name,
+            phone: customers.rows[0].phone,
+            cpf: customers.rows[0].cpf,
+            birthday: dayjs(customers.rows[0].birthday).format('YYYY-MM-DD')
+          };
+
+        res.send(customersFormat)
     }catch (err) {
         res.status(500).send(err.message);
     }
